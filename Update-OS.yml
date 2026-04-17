@@ -1,0 +1,43 @@
+---
+- name: Update Linux OS (Generic as possible)
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+
+    - name: Update package cache and upgrade all packages
+      ansible.builtin.package:
+        name: "*"
+        state: latest
+        update_cache: yes
+      register: update_result
+
+    - name: Autoremove unnecessary packages (Debian family)
+      ansible.builtin.apt:
+        autoremove: yes
+        autoclean: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Show what was updated
+      ansible.builtin.debug:
+        msg: 
+          - "Update completed on {{ inventory_hostname }}"
+          - "Changed: {{ update_result.changed }}"
+          - "OS Family: {{ ansible_os_family }}"
+
+    # Optional: Reboot if needed (basic version)
+    - name: Reboot if kernel was updated (Debian)
+      ansible.builtin.reboot:
+        msg: "Rebooting after OS update"
+      when: 
+        - ansible_os_family == "Debian"
+        - ansible_facts['pkg_mgr'] == 'apt'
+        - "'/var/run/reboot-required' is exists"   # simplified check
+
+    - name: Reboot if needed (RedHat family)
+      ansible.builtin.reboot:
+        msg: "Rebooting after OS update"
+      when: 
+        - ansible_os_family == "RedHat"
+        - update_result.changed | bool
