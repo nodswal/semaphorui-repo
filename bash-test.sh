@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-touch bash-test.txt
+touch /tmp/bash-test.txt
