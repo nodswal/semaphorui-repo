@@ -1,0 +1,23 @@
+---
+- name: Hello World Ansible Playbook
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create helloworld file in /tmp
+      ansible.builtin.file:
+        path: /tmp/helloworld.txt
+        state: touch
+        owner: root
+        group: root
+        mode: '0644'
+      
+    - name: Add Hello World content to the file
+      ansible.builtin.copy:
+        content: |
+          Hello World from Ansible!
+          Created on: {{ ansible_date_time.iso8601 }}
+          Host: {{ inventory_hostname }}
+        dest: /tmp/helloworld.txt
+        owner: root
+        group: root
+        mode: '0644'
